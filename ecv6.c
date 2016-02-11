@@ -10,26 +10,40 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 
-int
-main()
-{
- int fd;
- struct ifreq ifr;
+#include <ifaddrs.h>
 
- fd = socket(AF_INET, SOCK_DGRAM, 0);
+#define IF_NUM "eth3"
 
- /* IPv4のIPアドレスを取得したい */
- ifr.ifr_addr.sa_family = AF_INET;
+char *ip6_ntoa(struct in6_addr ip6){
+	static char str [INET6_ADDRSTRLEN];
+	inet_ntop(AF_INET6, &ip6, str, INET6_ADDRSTRLEN);
+	return str;
+}
 
- /* eth0のIPアドレスを取得したい */
- strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+void getifipv6addr(struct in6_addr *ip6, const char *device){
+	struct ifaddrs *if_list = NULL;
+	struct ifaddrs *ifa = NULL;
+	void *tmp = NULL;
 
- ioctl(fd, SIOCGIFADDR, &ifr);
+	getifaddrs(&if_list);
+	for(ifa = if_list; ifa != NULL; ifa = ifa->ifa_next){
+		if(strcmp(ifa->ifa_name, device) == 0){
+			if(!ifa->ifa_addr){
+				continue;
+			}else{
+				if(ifa->ifa_addr->sa_family == AF_INET6){
+					*ip6 = ((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
+					break;
+				}
+			}
+		}
+	}
+	freeifaddrs(if_list);
+}
 
- close(fd);
-
- /* 結果を表示 */
- printf("%s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
-
- return 0;
+int main(){
+	struct in6_addr ip6;
+	getifipv6addr(&ip6, IF_NUM);
+	printf("%s IPv6 address is %s.\n", IF_NUM, ip6_ntoa(ip6));
+	return 0;
 }
