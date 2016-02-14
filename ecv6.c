@@ -1,4 +1,5 @@
 ﻿#include <stdio.h>
+#include <stdlib.h>
 
 #include <string.h> /* for strncpy */
 #include <unistd.h> /* for close */
@@ -11,9 +12,16 @@
 #include <arpa/inet.h>
 
 #include <ifaddrs.h>
+#include <sys/uio.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <netdb.h>
 
 #define IF_NUM "eth3"
 #define PORT "5000"
+#define BUFLEN 256
 #define BACKLOG 5
 
 char *ip6_ntoa(struct in6_addr ip6){
@@ -43,7 +51,7 @@ void getifipv6addr(struct in6_addr *ip6, const char *device){
 	freeifaddrs(if_list);
 }
 
-int tcp_listen(const char *service){
+int tcplisten(const char *service){
 	int err;
 	struct addrinfo hints;
 	struct addrinfo *res = NULL;
@@ -124,7 +132,7 @@ void server(char *ip6){
 		printf("accept.\n");
 		
 		int read_size;
-		char buf[BUF_LEN];
+		char buf[BUFLEN];
 		read_size = read_line(cs, buf);
 		if(read_size == 0)break;
 		printf("mes: %s", buf);
