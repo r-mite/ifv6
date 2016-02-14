@@ -41,9 +41,26 @@ void getifipv6addr(struct in6_addr *ip6, const char *device){
 	freeifaddrs(if_list);
 }
 
+void server(){
+	int sock;
+	sock = tcplisten(PORT);
+	if(sock < 0){
+		perror("server");
+		exit(1);
+	}
+	
+	printf("wait...\n");
+	while(1){
+		int cs;
+		struct sockaddr
+	}
+}
+
 int main(){
 	struct in6_addr ip6;
 	getifipv6addr(&ip6, IF_NUM);
 	printf("%s IPv6 address is %s.\n", IF_NUM, ip6_ntoa(ip6));
+
+	server();
 	return 0;
 }
