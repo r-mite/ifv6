@@ -13,6 +13,8 @@
 #include <ifaddrs.h>
 
 #define IF_NUM "eth3"
+#define PORT "5000"
+#define BACKLOG 5
 
 char *ip6_ntoa(struct in6_addr ip6){
 	static char str [INET6_ADDRSTRLEN];
@@ -41,7 +43,67 @@ void getifipv6addr(struct in6_addr *ip6, const char *device){
 	freeifaddrs(if_list);
 }
 
-void server(){
+int tcp_listen(const char *service){
+	int err;
+	struct addrinfo hints;
+	struct addrinfo *res = NULL;
+	struct addrinfo *ai;
+	int sock;
+	
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET6;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	
+	err = getaddrinfo(NULL, service, &hints, &res);
+	if(err != 0){
+		printf("getaddrinfo(): %s\n", gai_strerror(err));
+		return -1;
+	}
+	
+	ai = res;
+	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+	if(sock < 0){
+		return -1;
+	}
+	int on = 1;
+	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0){
+		return -1;
+	}else{
+		printf("set SO_REUSEADDR\n");
+	}
+	if(bind(sock, ai->ai_addr, ai->ai_addrlen) < 0)
+		return -1;
+	if(listen(sock, BACKLOG) < 0)
+		return -1;
+	freeaddrinfo(res);
+	return sock;
+}
+
+int read_line(int sock, char *p){
+	int len = 0;
+	while(1){
+		int ret;
+		ret = read(sock, p, 1);
+		if(ret == -1){
+			perror("read");
+			exit(1);
+		}else if(ret == 0){
+			break;
+		}
+		if(*p == '\n'){
+			p++;
+			len++;
+			break;
+		}
+		p++;
+		len++;
+	}
+	*p = '\0';
+	return len;
+}
+
+void server(char *ip6){
 	int sock;
 	sock = tcplisten(PORT);
 	if(sock < 0){
@@ -52,7 +114,24 @@ void server(){
 	printf("wait...\n");
 	while(1){
 		int cs;
-		struct sockaddr
+		struct sockaddr_storage sa;
+		socklen_t len = sizeof(sa);
+		cs = accept(sock, (struct sockaddr *)&sa, &len);
+		if(cs<0){
+			perror("accept");
+			exit(1);
+		}
+		printf("accept.\n");
+		
+		int read_size;
+		char buf[BUF_LEN];
+		read_size = read_line(cs, buf);
+		if(read_size == 0)break;
+		printf("mes: %s", buf);
+		write(cs, ip6, strlen(ip6));
+		
+		printf("reject.\n");
+		close(cs);
 	}
 }
 
@@ -61,6 +140,6 @@ int main(){
 	getifipv6addr(&ip6, IF_NUM);
 	printf("%s IPv6 address is %s.\n", IF_NUM, ip6_ntoa(ip6));
 
-	server();
+	server(ip6_ntoa(ip6));
 	return 0;
 }
