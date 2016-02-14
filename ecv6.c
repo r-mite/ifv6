@@ -146,7 +146,7 @@ void server(char *ip6){
 int main(){
 	struct in6_addr ip6;
 	getifipv6addr(&ip6, IF_NUM);
-	printf("%s IPv6 address is %s.\n", IF_NUM, ip6_ntoa(ip6));
+	printf("%s - IPv6 address is %s.\n", IF_NUM, ip6_ntoa(ip6));
 
 	server(ip6_ntoa(ip6));
 	return 0;
