@@ -128,16 +128,16 @@ void client(const char *host){
 		exit(1);
 	}
 	
-	char conbuf[] = "pull";
-	write(cs, conbuf, strlen(conbuf));
+	char conbuf[] = "pull\n";
+	write(sock, conbuf, strlen(conbuf));
 	int read_size;
 	char buf[BUFLEN];
-	read_size = read_line(cs, buf);
-	if(read_size == 0)break;
-	printf("mes: %s", buf);
+	read_size = read_line(sock, buf);
+	if(read_size != 0)
+		printf("mes: %s\n", buf);
 	
 	printf("disconnect.\n");
-	close(cs);
+	close(sock);
 }
 
 int main(){
