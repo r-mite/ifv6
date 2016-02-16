@@ -139,7 +139,7 @@ void server(char *ip6){
 		write(cs, ip6, strlen(ip6));
 		
 		printf("reject.\n");
-		close(cs);
+		//close(cs);
 	}
 }
 
