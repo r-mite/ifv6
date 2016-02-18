@@ -136,7 +136,9 @@ void server(char *ip6){
 		read_size = read_line(cs, buf);
 		if(read_size == 0)break;
 		printf("mes: %s", buf);
-		write(cs, ip6, strlen(ip6));
+		char writebuf[BUFLEN];
+		sprintf(writebuf, "%s\n", ip6);
+		write(cs, writebuf, strlen(writebuf));
 		
 		printf("reject.\n");
 		//close(cs);
