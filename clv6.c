@@ -21,13 +21,29 @@
 
 #define IF_NUM "eth3"
 #define PORT "5000"
-#define BUFLEN 256
+#define BUFLEN 1024
 #define BACKLOG 5
 
 char *ip6_ntoa(struct in6_addr ip6){
 	static char str [INET6_ADDRSTRLEN];
 	inet_ntop(AF_INET6, &ip6, str, INET6_ADDRSTRLEN);
 	return str;
+}
+
+struct in6_addr ip6_aton(char *str){
+	struct in6_addr ip6;
+	inet_pton(AF_INET6, str, &ip6);
+	return ip6;
+}
+
+void subchar(char *t, const char *s){
+	int len;
+	int max = strlen(s);
+	printf("len: %d\n", max);
+	for(len = 0; len < max-1; len++){
+		*t++ = *s++;
+	}
+	*t = '\0';
 }
 
 void getifipv6addr(struct in6_addr *ip6, const char *device){
@@ -120,7 +136,7 @@ int read_line(int sock, char *p){
 	return len;
 }
 
-void client(const char *host){
+void client(const char *host, char *buf){
 	int sock;
 	sock = tcp_connect(host, PORT);
 	if(sock < 0){
@@ -131,17 +147,30 @@ void client(const char *host){
 	char conbuf[] = "pull\n";
 	write(sock, conbuf, strlen(conbuf));
 	int read_size;
-	char buf[BUFLEN];
-	read_size = read_line(sock, buf);
+	char rebuf[BUFLEN];
+	read_size = read_line(sock, rebuf);
 	if(read_size != 0)
-		printf("mes: %s\n", buf);
-	
+		printf("mes: %s\n", rebuf);
+	subchar(buf, rebuf);
+	printf("sub: %s\n", buf);
 	printf("disconnect.\n");
 	close(sock);
 }
 
 int main(){
+	char buf[BUFLEN];
+	struct in6_addr coaddr;
 	char ip6[] = "2002::a00:27ff:fea9:d6a1";
-	client(ip6);
+	client(ip6, buf);
+	
+	coaddr = ip6_aton(buf);
+	int i;
+	for(i=0; i<16; i++){
+		printf("%02x", coaddr.s6_addr[i]);
+		if(i % 2 == 1)
+			printf(":");
+	}
+	
+	printf("\n");
 	return 0;
 }
