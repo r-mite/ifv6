@@ -20,7 +20,7 @@
 #include <netdb.h>
 
 #define IF_NUM "eth3"
-#define PORT "5000"
+#define PORT "5001"
 #define BUFLEN 256
 #define BACKLOG 5
 
