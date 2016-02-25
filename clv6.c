@@ -166,6 +166,7 @@ int main(){
 	char buf[BUFLEN];
 	struct in6_addr coaddr;
 	char ip6[] = "2002::a00:27ff:fea9:d6a1";
+	//char ip6[] = "2002::5dbc:aa6f:305e:9f4e";
 	//char ip6[] = "::1";
 	int con;
 	con = client(ip6, buf);
