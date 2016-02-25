@@ -93,8 +93,10 @@ int tcp_connect(const char *host, const char *service){
 	int cs;
 	cs = connect(sock, ai->ai_addr, ai->ai_addrlen);
 	if(cs < 0){
-		perror("connect");
-		exit(1);
+		freeaddrinfo(res);
+		return -1;
+		//perror("connect");
+		//exit(1);
 	}
 	printf("connect.\n");
 	/*
@@ -136,12 +138,14 @@ int read_line(int sock, char *p){
 	return len;
 }
 
-void client(const char *host, char *buf){
+int client(const char *host, char *buf){
 	int sock;
 	sock = tcp_connect(host, PORT);
 	if(sock < 0){
-		perror("client");
-		exit(1);
+		close(sock);
+		return -1;
+		//perror("client");
+		//exit(1);
 	}
 	
 	char conbuf[] = "pull\n";
@@ -155,13 +159,19 @@ void client(const char *host, char *buf){
 	printf("sub: %s\n", buf);
 	printf("disconnect.\n");
 	close(sock);
+	return 0;
 }
 
 int main(){
 	char buf[BUFLEN];
 	struct in6_addr coaddr;
 	char ip6[] = "2002::a00:27ff:fea9:d6a1";
-	client(ip6, buf);
+	int con;
+	con = client(ip6, buf);
+	if(con < 0){
+		printf("connection error!\n");
+		return 0;
+	}
 	
 	coaddr = ip6_aton(buf);
 	int i;
